@@ -11,6 +11,8 @@ contract MyEpicNFT is ERC721URIStorage {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
+    uint16 NFT_NUM_MAX = 50;
+
     string baseSvg = "<svg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='xMinYMin meet' viewBox='0 0 350 350'><style>.base { fill: white; font-family: serif; font-size: 24px; }</style><rect width='100%' height='100%' fill='black' /><text x='50%' y='50%' class='base' dominant-baseline='middle' text-anchor='middle'>";
     // Arrays, each with their own theme of random words.
     string[] firstWords = [
@@ -18,7 +20,7 @@ contract MyEpicNFT is ERC721URIStorage {
         "Buddy", 
         "Sticky", 
         "Old", 
-        "Texas", 
+        "Broke", 
         "Boney", 
         "Toothless", 
         "Skinny", 
@@ -30,7 +32,6 @@ contract MyEpicNFT is ERC721URIStorage {
         "Harp", 
         "Legs", 
         "Eyes", 
-        "Lemon", 
         "Killer", 
         "Hips", 
         "Lips", 
@@ -44,9 +45,12 @@ contract MyEpicNFT is ERC721URIStorage {
         "Washington", 
         "Green", 
         "White", 
-        "Brown"
+        "Brown",
+        "Madison"
     ];
     
+    event NewEpicNFTMinted(address sender, uint256 tokenId);
+
     constructor() ERC721 ("SquareNFT", "SQUARE") {
         console.log("My NFT contract created");
     }
@@ -55,28 +59,37 @@ contract MyEpicNFT is ERC721URIStorage {
         return uint256(keccak256((abi.encodePacked(input))));
     }
 
-    function pickRandomWord(uint256 tokenId, string[] memory wordList) private pure returns (string memory) {
+    function pickRandomWord(uint256 tokenId, uint16 arrayId) private view returns (string memory) {
+        string[] memory wordList;
+        if (arrayId == 1) {
+            wordList = firstWords;
+        } else if (arrayId == 2) {
+            wordList = secondWords;
+        } else {
+            wordList = thirdWords;
+        }
         uint256 rand = random(string(
-            abi.encodePacked(wordList[0], Strings.toString(tokenId))
+            abi.encodePacked(arrayId, Strings.toString(tokenId))
         ));
         rand = rand % wordList.length;
         return wordList[rand];
     }
 
-    function makeAnEpicNFT() public {
+    function makeAnEpicNFT() public payable {
         uint256 newItemId = _tokenIds.current();
+        require(newItemId < NFT_NUM_MAX, "All the NFTs have been minted, no one left!");
 
         // Dynamic word generation
-        string memory first = pickRandomWord(newItemId, firstWords);
-        string memory second = pickRandomWord(newItemId, secondWords);
-        string memory third = pickRandomWord(newItemId, thirdWords);
+        string memory first = pickRandomWord(newItemId, 1);
+        string memory second = pickRandomWord(newItemId, 2);
+        string memory third = pickRandomWord(newItemId, 3);
         string memory combinedWord = string(
             abi.encodePacked(first, second, third)
         );
 
         // Concatenate svg all together
         string memory svg = string(
-            abi.encodePacked(baseSvg, first, second, third, "</text></svg>")
+            abi.encodePacked(baseSvg, combinedWord, "</text></svg>")
         );
 
         // Generate the JSON metadata
@@ -84,9 +97,11 @@ contract MyEpicNFT is ERC721URIStorage {
             bytes(
                 string(
                     abi.encodePacked(
-                        '{"name":"',
+                        '{"name": "',
+                        // We set the title of our NFT as the generated word.
                         combinedWord,
-                        '","description":"Randomly generated Blues name", "image":"data:image/svg+xml;base64,',
+                        '", "description": "Randomly generated Blues name", "image": "data:image/svg+xml;base64,',
+                        // We add data:image/svg+xml;base64 and then append our base64 encode our svg.
                         Base64.encode(bytes(svg)),
                         '"}'
                     )
@@ -100,14 +115,17 @@ contract MyEpicNFT is ERC721URIStorage {
         );
 
         console.log("\n--------------------");
+        console.log(combinedWord);
+        console.log("\n--------------------");
         console.log(svg);
         console.log("--------------------\n");
         console.log(finalTokenUri);
         console.log("--------------------\n");
 
         _safeMint(msg.sender, newItemId);
-        _setTokenURI(newItemId, svg);
+        _setTokenURI(newItemId, finalTokenUri);
+        _tokenIds.increment();
         console.log("Minted NFT with ID %s", newItemId);
-        _tokenIds.increment();        
+        emit NewEpicNFTMinted(msg.sender, newItemId);
     }
 }

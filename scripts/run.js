@@ -3,6 +3,7 @@ dotevn.config()
 
 const main = async () => {
     const nftContractFactory = await hre.ethers.getContractFactory("MyEpicNFT")
+    // const nftContractFactory = await hre.ethers.getContractFactory("NotMyEpicNFT")
     const nftContract = await nftContractFactory.deploy()
     await nftContract.deployed()
     console.log("Contract deployed to:", nftContract.address)
@@ -10,6 +11,16 @@ const main = async () => {
     let txn = await nftContract.makeAnEpicNFT()
     await txn.wait()
     console.log("NFT minted")
+
+    txn = await nftContract.makeAnEpicNFT()
+    await txn.wait()
+    console.log("NFT minted")
+    
+    txn = await nftContract.makeAnEpicNFT()
+    await txn.wait()
+    console.log("NFT minted")
+
+    
 }
 
 const runMain = async () => {
