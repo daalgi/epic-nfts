@@ -8,7 +8,9 @@ const main = async () => {
     await nftContract.deployed()
     console.log("Contract deployed to:", nftContract.address)
 
-    let txn = await nftContract.makeAnEpicNFT()
+    let txn = await nftContract.makeAnEpicNFT({
+        value: hre.ethers.utils.parseEther('0.07')
+    })
     await txn.wait()
     console.log("NFT minted")
 
@@ -20,7 +22,6 @@ const main = async () => {
     await txn.wait()
     console.log("NFT minted")
 
-    
 }
 
 const runMain = async () => {

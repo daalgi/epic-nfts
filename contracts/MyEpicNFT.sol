@@ -11,7 +11,8 @@ contract MyEpicNFT is ERC721URIStorage {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
-    uint16 NFT_NUM_MAX = 50;
+    uint16 NFT_NUM_MAX = 10000;
+    uint256 TOKEN_PRICE = 70e15;
 
     string baseSvg = "<svg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='xMinYMin meet' viewBox='0 0 350 350'><style>.base { fill: white; font-family: serif; font-size: 24px; }</style><rect width='100%' height='100%' fill='black' /><text x='50%' y='50%' class='base' dominant-baseline='middle' text-anchor='middle'>";
     // Arrays, each with their own theme of random words.
@@ -78,6 +79,8 @@ contract MyEpicNFT is ERC721URIStorage {
     function makeAnEpicNFT() public payable {
         uint256 newItemId = _tokenIds.current();
         require(newItemId < NFT_NUM_MAX, "All the NFTs have been minted, no one left!");
+
+        require(msg.value >= TOKEN_PRICE, "Not enough funds to mint!");
 
         // Dynamic word generation
         string memory first = pickRandomWord(newItemId, 1);
